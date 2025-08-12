@@ -4,23 +4,31 @@ import type { Note, NewNote } from "../types/note";
 export interface NoteSearchResponse {
   notes: Note[];
   totalPages: number;
+  page: number;
+  perPage: number;
 }
 
 axios.defaults.baseURL = "https://notehub-public.goit.study/api";
 const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 
 // Отримання нотаток із фільтром і пагінацією
-export async function fetchNotes(
-  searchQuery: string,
-  page: number
-): Promise<NoteSearchResponse> {
+export async function fetchNotes({
+  tag,
+  searchQuery,
+  page,
+}: {
+  tag?: string;
+  searchQuery?: string;
+  page?: number;
+}): Promise<NoteSearchResponse> {
   const response = await axios.get<NoteSearchResponse>(`/notes`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
     params: {
+      ...(tag && tag !== "all" && { tag }),
       ...(searchQuery && { search: searchQuery }),
-      perPage: 12,
+      perPage: 9,
       page,
     },
   });

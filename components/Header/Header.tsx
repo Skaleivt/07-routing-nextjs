@@ -1,5 +1,15 @@
 import css from "../Header/Header.module.css";
 import Link from "next/link";
+import TagsMenu from "../TagsMenu/TagsMenu";
+
+export const tags = [
+  "All notes",
+  "Work",
+  "Personal",
+  "Meeting",
+  "Shopping",
+  "Todo",
+];
 
 export default function Header() {
   return (
@@ -13,7 +23,7 @@ export default function Header() {
             <Link href="/">Home</Link>
           </li>
           <li>
-            <Link href="/notes">Notes</Link>
+            <TagsMenu tags={tags} />
           </li>
         </ul>
       </nav>

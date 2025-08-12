@@ -6,30 +6,30 @@ import { useDebouncedCallback } from "use-debounce";
 import { ToastContainer } from "react-toastify";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
-import { fetchNotes } from "../../lib/api";
-import { showErrorToast } from "../../components/ShowErrorToast/ShowErrorToast";
+import { fetchNotes } from "@/lib/api";
+import { showErrorToast } from "@/components/ShowErrorToast/ShowErrorToast";
 
-import NoteList from "../../components/NoteList/NoteList";
-import Pagination from "../../components/Pagination/Pagination";
-import SearchBox from "../../components/SearchBox/SearchBox";
-import Modal from "../../components/Modal/Modal";
-import NoteForm from "../../components/NoteForm/NoteForm";
-import type { NoteSearchResponse } from "../../lib/api";
+import NoteList from "@/components/NoteList/NoteList";
+import Pagination from "@/components/Pagination/Pagination";
+import SearchBox from "@/components/SearchBox/SearchBox";
+import CreateModal from "@/components/Modal/CreateModal";
+import NoteForm from "@/components/NoteForm/NoteForm";
+import type { NoteSearchResponse } from "@/lib/api";
 
 type NoteClientProps = {
   initialData: NoteSearchResponse;
-  searchQuery: string;
+  tag: string;
   currentPage: number;
 };
 
 export default function NotesClient({
   initialData,
-  searchQuery: initialSearch,
+  tag,
   currentPage: initialPage,
 }: NoteClientProps) {
-  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(initialPage);
-  const [inputValue, setInputValue] = useState(initialSearch);
+  const [inputValue, setInputValue] = useState("");
   const [isModalOpen, setModalOpen] = useState(false);
 
   const updateSearchQuery = useDebouncedCallback(
@@ -41,10 +41,16 @@ export default function NotesClient({
     setInputValue(value);
     updateSearchQuery(value);
   };
+  const queryTag = tag === "all" ? undefined : tag;
 
   const { data, isLoading, isSuccess } = useQuery({
-    queryKey: ["notes", searchQuery, currentPage],
-    queryFn: () => fetchNotes(searchQuery, currentPage),
+    queryKey: ["notes", tag, searchQuery, currentPage],
+    queryFn: () =>
+      fetchNotes({
+        tag: queryTag,
+        searchQuery: searchQuery,
+        page: currentPage,
+      }),
     placeholderData: keepPreviousData,
     initialData: initialData,
   });
@@ -83,9 +89,9 @@ export default function NotesClient({
           Create note +
         </button>
         {isModalOpen && (
-          <Modal onClose={() => setModalOpen(false)}>
+          <CreateModal onClose={() => setModalOpen(false)}>
             <NoteForm onCancel={() => setModalOpen(false)} />
-          </Modal>
+          </CreateModal>
         )}
       </header>
       {isSuccess && <NoteList notes={data.notes} />}
