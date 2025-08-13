@@ -20,7 +20,6 @@ import Loader from "@/components/Loader/Loader";
 type NoteClientProps = {
   initialData: NoteSearchResponse;
   tag: string;
-  currentPage: number;
 };
 
 export default function NotesClient({ initialData, tag }: NoteClientProps) {
@@ -56,7 +55,9 @@ export default function NotesClient({ initialData, tag }: NoteClientProps) {
 
   const noNotesToastShown = useRef(false);
 
-  const successContent = isSuccess && <NoteList notes={data.notes} />;
+  const successContent = isSuccess && data?.notes?.length > 0 && (
+    <NoteList notes={data.notes} />
+  );
 
   const loadingContent = isLoading && <Loader />;
 

@@ -26,6 +26,7 @@ export default function NotePreviewModal({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
     enabled: !!id,
+    refetchOnMount: false,
   });
 
   const close = () => router.back();
