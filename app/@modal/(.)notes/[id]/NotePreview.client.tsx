@@ -1,40 +1,61 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { createPortal } from "react-dom";
+import { useRouter, useParams } from "next/navigation";
+import {
+  useQuery,
+  HydrationBoundary,
+  DehydratedState,
+} from "@tanstack/react-query";
+import { useEffect } from "react";
+import { showErrorToast } from "@/components/ShowErrorToast/ShowErrorToast";
+import Modal from "@/components/Modal/Modal";
+import Loader from "@/components/Loader/Loader";
+import { fetchNoteById } from "@/lib/api";
 import css from "./NotePreview.module.css";
 
-type NotePreview = {
-  title: string;
-  content: string;
-  createdAt: string;
-  tag: string;
-};
-
 type NotePreviewProps = {
-  data: NotePreview;
+  dehydratedState: DehydratedState;
 };
 
-export default function NotePreviewModal({ data }: NotePreviewProps) {
-  const { title, content, createdAt, tag } = data;
+export default function NotePreviewModal({
+  dehydratedState,
+}: NotePreviewProps) {
   const router = useRouter();
+  const { id } = useParams() as { id: string };
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["note", id],
+    queryFn: () => fetchNoteById(id),
+    enabled: !!id,
+  });
 
   const close = () => router.back();
 
-  return createPortal(
-    <div className={css.container}>
-      <div className={css.header}>
-        <p className={css.tag}>{tag}</p>
-        <button className={css.backBtn} onClick={close}>
-          Close
-        </button>
-      </div>
-      <div className={css.item}>
-        <h2 className={css.header}>{title}</h2>
-        <p className={css.content}>{content}</p>
+  useEffect(() => {
+    if (isError) {
+      showErrorToast("Something went wrong while fetching notes.");
+    }
+  }, [isError]);
 
-        <p className={css.data}>{new Date(createdAt).toLocaleString()}</p>
-      </div>
-    </div>,
-    document.body
+  return (
+    <HydrationBoundary state={dehydratedState}>
+      <Modal onClose={close}>
+        {isLoading && <Loader />}
+        {data && (
+          <div>
+            <div className={css.header}>
+              <p className={css.tag}>{data.tag}</p>
+              <button onClick={close} className={css.backBtn}>
+                Close
+              </button>
+            </div>
+            <h2 className={css.title}>{data.title}</h2>
+            <p className={css.content}>{data.content}</p>
+            <p className={css.date}>
+              {new Date(data.createdAt).toLocaleString()}
+            </p>
+          </div>
+        )}
+      </Modal>
+    </HydrationBoundary>
   );
 }

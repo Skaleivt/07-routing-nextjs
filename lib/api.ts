@@ -13,12 +13,12 @@ const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 
 // Отримання нотаток із фільтром і пагінацією
 export async function fetchNotes({
-  tag,
   searchQuery,
+  tag,
   page,
 }: {
-  tag?: string;
   searchQuery?: string;
+  tag?: string;
   page?: number;
 }): Promise<NoteSearchResponse> {
   const response = await axios.get<NoteSearchResponse>(`/notes`, {
@@ -26,8 +26,8 @@ export async function fetchNotes({
       Authorization: `Bearer ${token}`,
     },
     params: {
-      ...(tag && tag !== "all" && { tag }),
       ...(searchQuery && { search: searchQuery }),
+      ...(tag && tag !== "All" && { tag }),
       perPage: 9,
       page,
     },

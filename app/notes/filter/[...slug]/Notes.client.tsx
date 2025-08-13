@@ -12,9 +12,10 @@ import { showErrorToast } from "@/components/ShowErrorToast/ShowErrorToast";
 import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
 import SearchBox from "@/components/SearchBox/SearchBox";
-import CreateModal from "@/components/Modal/CreateModal";
+import CreateModal from "@/components/Modal/Modal";
 import NoteForm from "@/components/NoteForm/NoteForm";
 import type { NoteSearchResponse } from "@/lib/api";
+import Loader from "@/components/Loader/Loader";
 
 type NoteClientProps = {
   initialData: NoteSearchResponse;
@@ -22,33 +23,29 @@ type NoteClientProps = {
   currentPage: number;
 };
 
-export default function NotesClient({
-  initialData,
-  tag,
-  currentPage: initialPage,
-}: NoteClientProps) {
+export default function NotesClient({ initialData, tag }: NoteClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [currentPage, setCurrentPage] = useState(1);
   const [inputValue, setInputValue] = useState("");
   const [isModalOpen, setModalOpen] = useState(false);
 
-  const updateSearchQuery = useDebouncedCallback(
-    (value: string) => setSearchQuery(value),
-    300
-  );
+  const updateSearchQuery = useDebouncedCallback((value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  }, 300);
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
     updateSearchQuery(value);
   };
-  const queryTag = tag === "all" ? undefined : tag;
+  const queryTag = tag === "All" ? undefined : tag;
 
-  const { data, isLoading, isSuccess } = useQuery({
-    queryKey: ["notes", tag, searchQuery, currentPage],
+  const { data, isLoading, isSuccess, isError } = useQuery({
+    queryKey: ["notes", searchQuery, tag, currentPage],
     queryFn: () =>
       fetchNotes({
-        tag: queryTag,
         searchQuery: searchQuery,
+        tag: queryTag,
         page: currentPage,
       }),
     placeholderData: keepPreviousData,
@@ -58,6 +55,16 @@ export default function NotesClient({
   const totalPages = data?.totalPages || 0;
 
   const noNotesToastShown = useRef(false);
+
+  const successContent = isSuccess && <NoteList notes={data.notes} />;
+
+  const loadingContent = isLoading && <Loader />;
+
+  useEffect(() => {
+    if (isError) {
+      showErrorToast("Something went wrong while fetching notes.");
+    }
+  }, [isError]);
 
   useEffect(() => {
     if (!isLoading && data && data.notes.length === 0) {
@@ -72,7 +79,7 @@ export default function NotesClient({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, tag]);
 
   return (
     <div className={css.app}>
@@ -94,7 +101,8 @@ export default function NotesClient({
           </CreateModal>
         )}
       </header>
-      {isSuccess && <NoteList notes={data.notes} />}
+      {loadingContent}
+      {successContent}
       <ToastContainer />
     </div>
   );

@@ -1,10 +1,13 @@
 "use client";
 
-import { HydrationBoundary, useQuery } from "@tanstack/react-query";
+import {
+  HydrationBoundary,
+  useQuery,
+  DehydratedState,
+} from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import css from "./NoteDetails.module.css";
 import { fetchNoteById } from "@/lib/api";
-import type { DehydratedState } from "@tanstack/react-query";
 
 function NoteDetailsPage({ id }: { id: string }) {
   const { data, isLoading, isError } = useQuery({
