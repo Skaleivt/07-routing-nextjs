@@ -17,5 +17,5 @@ export default async function NotesPage({ params }: Props) {
     page,
   });
 
-  return <NotesClient initialData={initialData} tag={tag} currentPage={page} />;
+  return <NotesClient initialData={initialData} tag={tag} />;
 }
